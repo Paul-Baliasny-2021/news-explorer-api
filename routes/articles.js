@@ -7,6 +7,7 @@ const {
 } = require('../controllers/articles');
 
 articleRouter.get('/', getMyArticles);
+
 articleRouter.post('/', celebrate({
   body: Joi.object().keys({
     title: Joi.string().required(),
@@ -18,6 +19,11 @@ articleRouter.post('/', celebrate({
     image: Joi.string().required(),
   }),
 }), saveArticle);
-articleRouter.delete('/:articleId', deleteArticle);
+
+articleRouter.delete('/:articleId', celebrate({
+  params: Joi.object().keys({
+    articleId: Joi.string().alphanum().required(),
+  }),
+}), deleteArticle);
 
 module.exports = articleRouter;

@@ -1,5 +1,7 @@
 const Article = require('../models/article');
 const ValidationError = require('../errors/validation-err');
+const NotFoundError = require('../errors/not-found-err');
+const UnauthorizedError = require('../errors/forbidden-err');
 
 module.exports.saveArticle = (req, res, next) => {
   /* eslint no-underscore-dangle: ["error", { "allow": ["_id"] }] */
@@ -27,8 +29,16 @@ module.exports.getMyArticles = (req, res, next) => {
 };
 
 module.exports.deleteArticle = (req, res, next) => {
-  Article.findByIdAndRemove(req.params.articleId)
-    .then(() => res.status(200).send({ message: 'Article successfully deleted' }))
+  Article.findById(req.params.articleId).select('+owner')
+    .orFail(new NotFoundError('No article found with that ID'))
+    .then((article) => {
+      if (req.user._id !== article.owner.toString()) {
+        next(new UnauthorizedError('Unauthorized to delete other users\' articles'));
+      } else {
+        Article.findByIdAndRemove(req.params.articleId)
+          .then(res.status(200).send({ message: 'Article successfully deleted' }));
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Invalid article ID'));
