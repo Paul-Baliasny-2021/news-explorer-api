@@ -30,7 +30,7 @@ module.exports.getMyArticles = (req, res, next) => {
 
 module.exports.deleteArticle = (req, res, next) => {
   Article.findById(req.params.articleId).select('+owner')
-    .orFail(new NotFoundError('No article found with that ID'))
+    .orFail(next)
     .then((article) => {
       if (req.user._id !== article.owner.toString()) {
         next(new UnauthorizedError('Unauthorized to delete other users\' articles'));
@@ -39,10 +39,8 @@ module.exports.deleteArticle = (req, res, next) => {
           .then(res.status(200).send({ message: 'Article successfully deleted' }));
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ValidationError('Invalid article ID'));
-      }
+    .catch(() => {
+      next(new NotFoundError('No article found with that ID'));
     })
     .catch(next);
 };
