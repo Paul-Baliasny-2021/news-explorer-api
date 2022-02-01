@@ -1,2 +1,2 @@
 # news-explorer-api
-Link to the website: https://api.news.students.nomoreparties.sbs
+Link to the website: api.news-treasure-chest.students.nomoreparties.sbs
